@@ -1,50 +1,91 @@
-function CURRENT_LOCATION_KEY() {
-    return "currentLocation"
-}
-
-function DEFAULT_STAY_DURATION() {
-    return 500
-}
-
-function roam(locations) {
-    //Initialize Location if it isn't yet
-    if(!npc.hasTempData(CURRENT_LOCATION_KEY()))
-        goNextLocations(locations)
+/**
+ * This function makes the NPC roam around the given Points.
+ * @param roamPoints Array of RoamPoints
+ */
+function roam(roamPoints) {
+    //Initialize RoamPoint if it isn't yet
+    if(!npc.hasTempData(CURRENT_ROAM_POINT_KEY()))
+        goToNextRoamPoint(roamPoints)
     
-    currentLocation = npc.getTempData(CURRENT_LOCATION_KEY())
+    currentLocation = npc.getTempData(CURRENT_ROAM_POINT_KEY())
     
     if(currentLocation.isTimeToLeave())
-        goNextLocations(locations)
+        goToNextRoamPoint(roamPoints)
 }
 
-function goNextLocations(locations) {
-    next = getNextLocation(locations)
+/**
+ * This function sends the NPC to the next RoamPoint
+ */
+function goToNextRoamPoint(roamPoints) {
+    next = getNextLocation(roamPoints)
     
-    //TODO temp fix if there is no location we should be at
+    //TODO temp fix if there is no location we should be at go to the first location
     if(!next)
-        next = locations[0]
+        next = roamPoints[0]
     
     next.goHere()
-    npc.setTempData(CURRENT_LOCATION_KEY(), next)
+    npc.setTempData(CURRENT_ROAM_POINT_KEY(), next)
 }
 
-function getNextLocation(locations) {
-    for(i = 0; i < locations.length; i++)
-        if(!locations[i].isTimeToLeave())
-            return locations[i]
+/**
+ * This Method will change to give a list of all possible RoamLocations.
+ *
+ * @param roamPoints RoamPoints to choose from
+ * @returns {*} The first RoamPoint which isTimeToLeave returns false
+ */
+function getNextLocation(roamPoints) {
+    for(i = 0; i < roamPoints.length; i++)
+        if(!roamPoints[i].isTimeToLeave())
+            return roamPoints[i]
 }
 
-function Location(point, options) {
+/**
+ * Representing a RoamPoint in your world.
+
+ * @param point Point with the coordinates of this RoamPoint.
+ * @param options
+ *      <ul>
+ *          <li>
+ *              name
+ *              name: Name of the RoamPoint.
+ *          </li>
+ *          <li>
+ *              startTime
+ *              startTime: When to go to this RoamPoint.
+ *          </li>
+ *          <li>
+ *              [endTime|stayDuration]
+ *              endTime: When to leave this RoamPoint.
+ *              stayDuration: How long to stay at this RoamPoint. (endTime = startTime + stayDuration)
+ *              If both are specified endTime will be used.
+ *              If none is specified the npc will stay for a default time which is specified in 'constants.js'.
+ *          </li>
+ *      </ul>
+ * @constructor
+ */
+function RoamPoint(point, options) {
     this.point = point
-
     this.name = options.name
-    this.startTime = options.startTime
-    //TODO Use Stay_duration of options first
-    this.endTime = this.startTime + DEFAULT_STAY_DURATION()
-    this.action = options.action
-    
-        
-    
+
+    if(options.hasOwnProperty("startTime"))
+        this.startTime = options.startTime
+    else {
+        printObject(point)
+        printObject(options)
+        npc.say("RoamPoint does not specify 'startTime' aborting")
+        return
+    }
+
+    if(options.hasOwnProperty("endTime"))
+        this.endTime = options.endTime
+    else if(options.hasOwnProperty("stayDuration"))
+        this.endTime = options.stayTime
+    else
+        this.endTime = this.startTime + DEFAULT_STAY_DURATION()
+
+    /**
+     * This functions sets the home of the npc to this location
+     */
     this.goHere = function() {
         npc.setHome(this.point.x, this.point.y, this.point.z)
 
@@ -53,12 +94,23 @@ function Location(point, options) {
             npc.say("My new Home is " + ((this.name) ? this.name + ", it is" : "") + " at " + this.point.x + ", " + this.point.y + ", " + this.point.z)
         }
     }
-    
+
+    /**
+     * Determines if it is time to leave this location
+     * @returns {boolean} true if it is time to leave otherwise false
+     */
     this.isTimeToLeave = function() {
-        return getDayTime() > this.endTime
+        return getDayTime() < this.startTime || getDayTime() > this.endTime
     }
 }
 
+/**
+ * Representing a point in 3 Dimensional space
+ * @param x coordinate
+ * @param y coordinate
+ * @param z coordinate
+ * @constructor
+ */
 function Point(x, y, z) {
     this.x = x
     this.y = y

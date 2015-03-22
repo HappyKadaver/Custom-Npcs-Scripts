@@ -2,6 +2,6 @@ function getDayTime() {
     return world.getTime() % 24000
 }
 
-function printTime() {
+function sayTime() {
     npc.say(getDayTime())
 }
