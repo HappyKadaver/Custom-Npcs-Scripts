@@ -17,7 +17,7 @@ function roam(roamPoints) {
  * This function sends the NPC to the next RoamPoint
  */
 function goToNextRoamPoint(roamPoints) {
-    next = getNextLocation(roamPoints)
+    next = getNextRoamPoint(roamPoints)
     
     //TODO temp fix if there is no location we should be at go to the first location
     if(!next)
@@ -33,7 +33,7 @@ function goToNextRoamPoint(roamPoints) {
  * @param roamPoints RoamPoints to choose from
  * @returns {*} The first RoamPoint which isTimeToLeave returns false
  */
-function getNextLocation(roamPoints) {
+function getNextRoamPoint(roamPoints) {
     for(i = 0; i < roamPoints.length; i++)
         if(!roamPoints[i].isTimeToLeave())
             return roamPoints[i]
@@ -79,7 +79,7 @@ function RoamPoint(point, options) {
     if(options.hasOwnProperty("endTime"))
         this.endTime = options.endTime
     else if(options.hasOwnProperty("stayDuration"))
-        this.endTime = options.stayTime
+        this.endTime = this.startTime + options.stayDuration
     else
         this.endTime = this.startTime + DEFAULT_STAY_DURATION()
 
