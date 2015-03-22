@@ -23,7 +23,7 @@ function goToNextRoamPoint(roamPoints) {
     if(!next)
         next = roamPoints[0]
     
-    next.goHere()
+    next.setHome()
     npc.setTempData(CURRENT_ROAM_POINT_KEY(), next)
 }
 
@@ -42,13 +42,9 @@ function getNextRoamPoint(roamPoints) {
 /**
  * Representing a RoamPoint in your world.
 
- * @param point Point with the coordinates of this RoamPoint.
+ * @param location Location with the coordinates of this RoamPoint.
  * @param options
  *      <ul>
- *          <li>
- *              name
- *              name: Name of the RoamPoint.
- *          </li>
  *          <li>
  *              startTime
  *              startTime: When to go to this RoamPoint.
@@ -63,14 +59,13 @@ function getNextRoamPoint(roamPoints) {
  *      </ul>
  * @constructor
  */
-function RoamPoint(point, options) {
-    this.point = point
-    this.name = options.name
+function RoamPoint(location, options) {
+    this.location = location
 
     if(options.hasOwnProperty("startTime"))
         this.startTime = options.startTime
     else {
-        printObject(point)
+        printObject(location)
         printObject(options)
         npc.say("RoamPoint does not specify 'startTime' aborting")
         return
@@ -86,14 +81,9 @@ function RoamPoint(point, options) {
     /**
      * This functions sets the home of the npc to this location
      */
-    this.goHere = function() {
-        npc.setHome(this.point.x, this.point.y, this.point.z)
-
-        if(DEBUG) {
-            npc.say("Time: " + getDayTime())
-            npc.say("My new Home is " + ((this.name) ? this.name + ", it is" : "") + " at " + this.point.x + ", " + this.point.y + ", " + this.point.z)
-        }
-    }
+    this.setHome = function() {
+        this.location.setHome()
+    };
 
     /**
      * Determines if it is time to leave this location
@@ -105,14 +95,27 @@ function RoamPoint(point, options) {
 }
 
 /**
- * Representing a point in 3 Dimensional space
+ * Representing a Location in your World
  * @param x coordinate
  * @param y coordinate
  * @param z coordinate
+ * @param name Name of this Location
+ * @param options not used yet
  * @constructor
  */
-function Point(x, y, z) {
+function Location(x, y, z, name, options) {
     this.x = x
     this.y = y
     this.z = z
+
+    this.name = name;
+
+    this.setHome = function() {
+        npc.setHome(this.x, this.y, this.z)
+
+        if(DEBUG) {
+            npc.say("Time: " + getDayTime())
+            npc.say("My new Home is " + ((this.name) ? this.name + ", it is" : "") + " at " + this.x + ", " + this.y + ", " + this.z)
+        }
+    }
 }
