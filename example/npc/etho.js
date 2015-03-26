@@ -1,4 +1,5 @@
 function ROAM_LOCATIONS() {
+    //this funciton is defined in the file worldLocations.js
     spawn = getWorldLocations().spawn;
 
     return [

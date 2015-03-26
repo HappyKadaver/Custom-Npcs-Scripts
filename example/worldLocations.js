@@ -1,5 +1,9 @@
 /**
  * Return an Object containing information about every Locations in the world.
+ * 
+ * I decided to store all information about Locations in the world in a single file so it would be easier to change later since all Npcs
+ * will refer to this.
+ * 
  * @returns {{spawn: {wet: Location, sandy: Location, fishshack: Location, dustyDiner: Location, dry: Location, someNameIMadeUp: Location}}}
  */
 function getWorldLocations() {
